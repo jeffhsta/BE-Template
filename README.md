@@ -1,6 +1,12 @@
 # DEEL BACKEND TASK
 
-  
+## Items to do:
+
+- Setup a lint
+- Add tests
+- Move DB logic out of the routes/API layer
+
+## Original README
 
 💫 Welcome! 🎉
 
