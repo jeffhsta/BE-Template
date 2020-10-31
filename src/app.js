@@ -69,4 +69,41 @@ app.post('/jobs/:jobId/pay', getProfile, async (request, response) => {
     response.json({ profile, job });
 });
 
+app.post('/balances/deposit/:userId', async (request, response) => {
+    const { Profile, Job, Contract } = request.app.get('models');
+    const { userId } = request.params;
+    const { amount } = request.body;
+
+    const profile = await Profile.findOne({ where: { id: userId }});
+
+    if (!profile) {
+        return response.status(404).json({ message: "Profile not found!" });
+    }
+
+    const [{ price }] = await Job.findAll({
+        attributes: [
+          [sequelize.fn('SUM', sequelize.col('price')), 'price'],
+        ],
+        where: { paid: false },
+        include: {
+            model: Contract,
+            where: {
+                [Op.or]: [
+                    { clientId:  userId }
+                ]
+            }
+        }
+      });
+    
+    const totalPrinceToPay = price || 0;
+    if (totalPrinceToPay * 1.25 < amount) {
+        return response.status(403).json({ message: "The deposit is higher than 25% of total jobs to pay!" });
+    }
+
+    profile.balance += amount;
+    profile.save();
+
+    response.json({ profile });
+});
+
 module.exports = app;
