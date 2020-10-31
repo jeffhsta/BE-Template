@@ -45,4 +45,28 @@ app.get('/jobs/unpaid', getProfile, async (request, response) => {
     response.json(jobs);
 });
 
+app.post('/jobs/:jobId/pay', getProfile, async (request, response) => {
+    const { Job, Profile } = request.app.get('models');
+    const { jobId } = request.params;
+
+    const profile = await Profile.findOne({ where: { id: request.profile.id }});
+    const job = await Job.findOne({ where: { id: jobId, paid: false } });
+
+    if (!profile || !job) {
+        return response.status(404).json({ message: "Profile or unpaid job not found!" });
+    }
+
+    if (profile.balance < job.price) {
+        response.status(403).json({ message: "There is not enough balance to pay job!" });
+    }
+
+    profile.balance -= job.price;
+    job.paid = true;
+
+    profile.save();
+    job.save();
+
+    response.json({ profile, job });
+});
+
 module.exports = app;
