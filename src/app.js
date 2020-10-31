@@ -20,4 +20,10 @@ app.get('/contracts/:id', getProfile, async (request, response) => {
     response.json(contract);
 });
 
+app.get('/contracts', getProfile, async (request, response) => {
+    const { Contract } = request.app.get('models');
+    const contracts = await Contract.findAll({ where: { contractorId: request.profile.id } });
+    response.json(contracts);
+});
+
 module.exports = app;
